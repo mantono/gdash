@@ -1,0 +1,22 @@
+query UserIssues($searchQuery: String!) {
+  search(query: $searchQuery, type: ISSUE, first: 50) {
+    edges {
+      node {
+        ... on Issue {
+          title
+          updatedAt
+          createdAt
+          repository {
+            nameWithOwner
+          }
+          comments {
+            totalCount
+          }
+          reactions {
+            totalCount
+          }
+        }
+      }
+    }
+  }
+}
