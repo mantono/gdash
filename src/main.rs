@@ -60,14 +60,31 @@ struct Issue {
 }
 
 impl Issue {
-    fn from_json(data: &Value) -> Issue {
+    fn from_json(data: &Value) -> Vec<Issue> {
+        let nodes: Option<&Vec<Value>> = data["data"]["search"]["edges"].as_array();
+        let nodes: &Vec<Value> = match nodes {
+            Some(vec) => vec,
+            None => &Vec::new()
+        };
+        nodes.iter()
+            .filter(|&node| node.is_object())
+            .map(|&node|Issue::from_node(&node))
+            .collect()
+    }
+
+    fn from_node(node: &Value) -> Issue {
+        let comments: Option<u64> = node["comments"]["totalCount"].as_u64();
+        let comments: u32 = match comments {
+            Some(c) => c as u32,
+            None => 0u32
+        };
         Issue {
-            url: data["url"].to_string(),
-            title: data["title"].to_string(),
+            url: node["url"].to_string(),
+            title: node["title"].to_string(),
             labels: Vec::new(),
-            comments: 1,
-            updated_at: String::from("DD"),
-            repository: String::from("mantono/xx")
+            comments,
+            updated_at: node["updatedAt"].to_string(),
+            repository: node["repository"]["nameWithOwner"].to_string()
         }
     }
 }
