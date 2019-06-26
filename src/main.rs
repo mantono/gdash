@@ -1,13 +1,9 @@
 extern crate reqwest;
 
 use std::env;
-use reqwest::Response;
 use serde_json::Value;
-use serde_json::{Deserializer, Serializer};
-use std::ops::Add;
 use std::fs;
 use std::collections::HashMap;
-use std::fmt::Error;
 
 fn main() -> Result<(), Box<std::error::Error>> {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -62,17 +58,25 @@ struct Issue {
 impl Issue {
     fn from_json(data: &Value) -> Vec<Issue> {
         let nodes: Option<&Vec<Value>> = data["data"]["search"]["edges"].as_array();
+        let empty = Vec::new();
         let nodes: &Vec<Value> = match nodes {
             Some(vec) => vec,
-            None => &Vec::new()
+            None => &empty
         };
         nodes.iter()
-            .filter(|&node| node.is_object())
-            .map(|&node|Issue::from_node(&node))
+            .filter(|node| node.is_object())
+            .map(|node| node.get("node"))
+            .filter(|node| node.is_some())
+            .map(|node| match node {
+                Some(n) => n,
+                None => panic!("Impossible")
+            })
+            .map(|node| Issue::from_node(&node))
             .collect()
     }
 
     fn from_node(node: &Value) -> Issue {
+        println!("{:#?}", node);
         let comments: Option<u64> = node["comments"]["totalCount"].as_u64();
         let comments: u32 = match comments {
             Some(c) => c as u32,

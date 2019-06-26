@@ -4,6 +4,7 @@ query UserIssues($searchQuery: String!) {
       node {
         ... on Issue {
           title
+          url
           updatedAt
           createdAt
           repository {
