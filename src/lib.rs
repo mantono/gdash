@@ -3,8 +3,9 @@ pub mod issue {
     use serde_json::Value;
     use std::fmt;
     use std::cmp::Ordering;
-    use chrono::DateTime;
+    use chrono::{DateTime, Datelike, Duration, FixedOffset};
     use crate::state::State;
+    use std::time::{SystemTime, Duration};
 
     #[derive(Debug)]
     pub struct Issue {
@@ -65,6 +66,15 @@ pub mod issue {
             };
             Some(issue)
         }
+
+        fn score(&self) -> u64 {
+            let then: &DateTime<FixedOffset> = &self.updated_at;
+            let now: &DateTime<FixedOffset> = DateTime::from(SystemTime::now());
+            let dur: OldDuration = now.signed_duration_since(then);
+            let days: u64 = dur.as_secs() / 86_400;
+            let comments: u64 = (self.comments * self.comments).min(1) as u64;
+            days * comments
+        }
     }
 
     impl fmt::Display for Issue {
@@ -75,10 +85,7 @@ pub mod issue {
 
     impl Ord for Issue {
         fn cmp(&self, other: &Self) -> Ordering {
-            if self.comments != other.comments {
-                return self.comments.cmp(&other.comments)
-            }
-            self.updated_at.cmp(&other.updated_at)
+            self.score().cmp(&other.score())
         }
     }
 
