@@ -51,6 +51,7 @@ struct Issue {
     title: String,
     labels: Vec<String>,
     comments: u32,
+    state: Option<State>,
     updated_at: String,
     repository: String,
 }
@@ -72,23 +73,45 @@ impl Issue {
                 None => panic!("Impossible")
             })
             .map(|node| Issue::from_node(&node))
+            .filter(|node| node.is_some())
+            .map(|node| node.expect("This is ok"))
             .collect()
     }
 
-    fn from_node(node: &Value) -> Issue {
+    fn from_node(node: &Value) -> Option<Issue> {
         println!("{:#?}", node);
         let comments: Option<u64> = node["comments"]["totalCount"].as_u64();
         let comments: u32 = match comments {
             Some(c) => c as u32,
             None => 0u32
         };
-        Issue {
-            url: node["url"].to_string(),
-            title: node["title"].to_string(),
+        let issue = Issue {
+            url: node["url"].as_str()?.to_string(),
+            title: node["title"].as_str()?.to_string(),
             labels: Vec::new(),
+            state: State::from_string(&node["state"].as_str()?.to_string()),
             comments,
-            updated_at: node["updatedAt"].to_string(),
-            repository: node["repository"]["nameWithOwner"].to_string()
+            updated_at: node["updatedAt"].as_str()?.to_string(),
+            repository: node["repository"]["nameWithOwner"].as_str()?.to_string()
+        };
+        Some(issue)
+    }
+}
+
+#[derive(Debug)]
+enum State {
+    Open,
+    Closed
+}
+
+impl State {
+    fn from_string(str: &String) -> Option<State> {
+        let str: &str = str.as_str();
+        match str {
+            "OPEN" => Some(State::Open),
+            "CLOSED" => Some(State::Closed),
+            "null" => None,
+            _ => panic!("Invalid argument {}", str)
         }
     }
 }

@@ -5,6 +5,7 @@ query UserIssues($searchQuery: String!) {
         ... on Issue {
           title
           url
+          state
           updatedAt
           createdAt
           repository {
