@@ -1,11 +1,13 @@
-use serde_json::Value;
-use std::fmt;
-use std::cmp::Ordering;
-use chrono::DateTime;
+pub mod issue {
 
-mod issue {
+    use serde_json::Value;
+    use std::fmt;
+    use std::cmp::Ordering;
+    use chrono::DateTime;
+    use crate::state::State;
+
     #[derive(Debug)]
-    struct Issue {
+    pub struct Issue {
         url: String,
         title: String,
         labels: Vec<String>,
@@ -16,7 +18,7 @@ mod issue {
     }
 
     impl Issue {
-        fn from_json(data: &Value) -> Vec<Issue> {
+        pub fn from_json(data: &Value) -> Vec<Issue> {
             let nodes: Option<&Vec<Value>> = data["data"]["search"]["edges"].as_array();
             let empty = Vec::new();
             let nodes: &Vec<Value> = match nodes {
@@ -40,7 +42,7 @@ mod issue {
             issues
         }
 
-        fn from_node(node: &Value) -> Option<Issue> {
+        pub fn from_node(node: &Value) -> Option<Issue> {
             let comments: Option<u64> = node["comments"]["totalCount"].as_u64();
             let comments: u32 = match comments {
                 Some(c) => c as u32,
@@ -65,8 +67,7 @@ mod issue {
 
     impl fmt::Display for Issue {
         fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-            fmt.write_fmt(format_args!("{} -> {}\t[{}]", &self.repository, &self.title, &self.url));
-            Ok(())
+            fmt.write_fmt(format_args!("{} -> {}\t[{}]", &self.repository, &self.title, &self.url))
         }
     }
 
@@ -92,6 +93,52 @@ mod issue {
             self.url == other.url
                 && self.comments == other.comments
                 && self.updated_at == other.updated_at
+        }
+    }
+}
+
+pub mod state {
+
+    #[derive(Debug)]
+    pub enum State {
+        Open,
+        Closed
+    }
+
+    impl State {
+        pub fn from_string(str: &String) -> Option<State> {
+            let str: &str = str.as_str();
+            match str {
+                "OPEN" => Some(State::Open),
+                "CLOSED" => Some(State::Closed),
+                "null" => None,
+                _ => panic!("Invalid argument {}", str)
+            }
+        }
+    }
+}
+
+pub mod args {
+
+    use std::env;
+
+    pub struct Arguments {
+        pub user: String,
+        pub organizations: Vec<String>
+    }
+
+    impl Arguments {
+        pub fn from_args() -> Result<Arguments, &'static str> {
+            let args: Vec<String> = env::args().skip(1).collect();
+            match args.len() {
+                0 => panic!("This should not happen"),
+                1 => Err("No arguments given, needs [USER] [ORGANIZATION ...]"),
+                2 => Err("No argument given for organization"),
+                _ => Ok(Arguments {
+                    user: args.first().unwrap().clone(),
+                    organizations: env::args().skip(2).collect()
+                })
+            }
         }
     }
 }
