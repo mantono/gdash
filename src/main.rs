@@ -28,7 +28,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
         variables.push_str(&format!(" user:{}", &org));
     }
     variables.push_str(r#" sort:comments-desc" }"#);
-    println!("{}", variables);
     json_data.insert(String::from("query"), query);
     json_data.insert(String::from("variables"), String::from(variables));
     json_data.insert(String::from("operationName"), String::from("UserIssues"));
