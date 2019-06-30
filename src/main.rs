@@ -4,6 +4,8 @@ use std::env;
 use serde_json::Value;
 use std::fs;
 use std::collections::HashMap;
+use std::cmp::Ordering;
+use chrono::DateTime;
 
 fn main() -> Result<(), Box<std::error::Error>> {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -52,7 +54,7 @@ struct Issue {
     labels: Vec<String>,
     comments: u32,
     state: Option<State>,
-    updated_at: String,
+    updated_at: DateTime<chrono::FixedOffset>,
     repository: String,
 }
 
@@ -64,7 +66,7 @@ impl Issue {
             Some(vec) => vec,
             None => &empty
         };
-        nodes.iter()
+        let mut issues: Vec<Issue> = nodes.iter()
             .filter(|node| node.is_object())
             .map(|node| node.get("node"))
             .filter(|node| node.is_some())
@@ -75,7 +77,10 @@ impl Issue {
             .map(|node| Issue::from_node(&node))
             .filter(|node| node.is_some())
             .map(|node| node.expect("This is ok"))
-            .collect()
+            .collect::<Vec<Issue>>();
+
+        issues.sort_by(|issue1, issue2| if issue2.comments < issue1.comments { Ordering::Less } else { Ordering::Greater});
+        issues
     }
 
     fn from_node(node: &Value) -> Option<Issue> {
@@ -85,13 +90,17 @@ impl Issue {
             Some(c) => c as u32,
             None => 0u32
         };
+        let updated_at: &str = match node["updatedAt"].as_str() {
+            Some(s) => s,
+            None => return None
+        };
         let issue = Issue {
             url: node["url"].as_str()?.to_string(),
             title: node["title"].as_str()?.to_string(),
             labels: Vec::new(),
             state: State::from_string(&node["state"].as_str()?.to_string()),
             comments,
-            updated_at: node["updatedAt"].as_str()?.to_string(),
+            updated_at: DateTime::parse_from_rfc3339(updated_at).expect("Unable to parse date"),
             repository: node["repository"]["nameWithOwner"].as_str()?.to_string()
         };
         Some(issue)
