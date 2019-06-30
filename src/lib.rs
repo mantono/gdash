@@ -8,6 +8,7 @@ pub mod issue {
 
     #[derive(Debug)]
     pub struct Issue {
+        id: String,
         url: String,
         title: String,
         labels: Vec<String>,
@@ -53,6 +54,7 @@ pub mod issue {
                 None => return None
             };
             let issue = Issue {
+                id: node["id"].as_str()?.to_string(),
                 url: node["url"].as_str()?.to_string(),
                 title: node["title"].as_str()?.to_string(),
                 labels: Vec::new(),
@@ -90,9 +92,7 @@ pub mod issue {
 
     impl PartialEq for Issue {
         fn eq(&self, other: &Issue) -> bool {
-            self.url == other.url
-                && self.comments == other.comments
-                && self.updated_at == other.updated_at
+            self.id == other.id
         }
     }
 }

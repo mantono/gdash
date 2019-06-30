@@ -3,6 +3,7 @@ query UserIssues($searchQuery: String!) {
     edges {
       node {
         ... on Issue {
+          id
           title
           url
           state
