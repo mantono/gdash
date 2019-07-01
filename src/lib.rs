@@ -3,9 +3,8 @@ pub mod issue {
     use serde_json::Value;
     use std::fmt;
     use std::cmp::Ordering;
-    use chrono::{DateTime, Datelike, Duration, FixedOffset};
+    use chrono::{DateTime, FixedOffset, Utc};
     use crate::state::State;
-    use std::time::{SystemTime, Duration};
 
     #[derive(Debug)]
     pub struct Issue {
@@ -38,9 +37,10 @@ pub mod issue {
                 .map(|node| Issue::from_node(&node))
                 .filter(|node| node.is_some())
                 .map(|node| node.expect("This is ok"))
+                .filter(|node| is_open(&node.state))
                 .collect::<Vec<Issue>>();
 
-            issues.sort_by(|issue1, issue2| if issue2.comments < issue1.comments { Ordering::Less } else { Ordering::Greater});
+            issues.sort();
             issues
         }
 
@@ -68,12 +68,22 @@ pub mod issue {
         }
 
         fn score(&self) -> u64 {
-            let then: &DateTime<FixedOffset> = &self.updated_at;
-            let now: &DateTime<FixedOffset> = DateTime::from(SystemTime::now());
-            let dur: OldDuration = now.signed_duration_since(then);
-            let days: u64 = dur.as_secs() / 86_400;
+            let then: DateTime<FixedOffset> = self.updated_at.clone();
+            let now: &DateTime<Utc> = &Utc::now();
+            let dur = now.signed_duration_since(then);
+            let days: u64 = (dur.num_seconds() as u64) / 86_400;
             let comments: u64 = (self.comments * self.comments).min(1) as u64;
             days * comments
+        }
+    }
+
+    fn is_open(state: &Option<State>) -> bool {
+        match state {
+            Some(s) => match s {
+                State::Open => true,
+                State::Closed => false
+            }
+            _ => false
         }
     }
 
@@ -85,7 +95,7 @@ pub mod issue {
 
     impl Ord for Issue {
         fn cmp(&self, other: &Self) -> Ordering {
-            self.score().cmp(&other.score())
+            other.score().cmp(&self.score())
         }
     }
 
@@ -106,7 +116,7 @@ pub mod issue {
 
 pub mod state {
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     pub enum State {
         Open,
         Closed

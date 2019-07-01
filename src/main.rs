@@ -4,7 +4,6 @@ use gdash::issue::Issue;
 use gdash::args::Arguments;
 use std::env;
 use serde_json::Value;
-use std::fs;
 use std::collections::HashMap;
 
 fn main() -> Result<(), Box<std::error::Error>> {
