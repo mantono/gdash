@@ -15,8 +15,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         None => panic!("No GitHub API token found")
     };
     let mut json_data: HashMap<String, String> = HashMap::new();
-    let query = fs::read_to_string("src/search.graphql")
-        .expect("Something went wrong reading the file");
+    let query = include_str!("search.graphql").to_string();
 
     let mut variables: String = r#"{ "searchQuery": "is:open archived:false assignee:"#.to_string();
     let args = match args {
