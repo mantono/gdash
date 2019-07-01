@@ -146,7 +146,7 @@ pub mod args {
 
     impl Arguments {
         pub fn from_args() -> Result<Arguments, &'static str> {
-            let args: Vec<String> = env::args().filter(|x| !x.ends_with("gdash")).collect();
+            let args: Vec<String> = env::args().skip(1).collect();
             match args.len() {
                 0 => Err("No arguments given, needs [USER] [ORGANIZATION ...]"),
                 1 => Err("No argument given for organization"),
