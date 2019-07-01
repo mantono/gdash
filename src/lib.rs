@@ -136,11 +136,10 @@ pub mod args {
 
     impl Arguments {
         pub fn from_args() -> Result<Arguments, &'static str> {
-            let args: Vec<String> = env::args().skip(1).collect();
+            let args: Vec<String> = env::args().filter(|x| !x.ends_with("gdash")).collect();
             match args.len() {
-                0 => panic!("This should not happen"),
-                1 => Err("No arguments given, needs [USER] [ORGANIZATION ...]"),
-                2 => Err("No argument given for organization"),
+                0 => Err("No arguments given, needs [USER] [ORGANIZATION ...]"),
+                1 => Err("No argument given for organization"),
                 _ => Ok(Arguments {
                     user: args.first().unwrap().clone(),
                     organizations: env::args().skip(2).collect()
