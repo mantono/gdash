@@ -1,6 +1,6 @@
 extern crate reqwest;
 
-use gdash::issue::Issue;
+use gdash::issue::issue::Issue;
 use gdash::args::Arguments;
 use std::env;
 use serde_json::Value;
@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         None => panic!("No GitHub API token found")
     };
     let mut json_data: HashMap<String, String> = HashMap::new();
-    let query = include_str!("search.graphql").to_string();
+    let query = include_str!("search_issues.graphql").to_string();
 
     let mut variables: String = r#"{ "searchQuery": "is:open archived:false assignee:"#.to_string();
     let args = match args {
