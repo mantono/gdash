@@ -45,3 +45,79 @@ fn main() -> Result<(), Box<std::error::Error>> {
     }
     Ok(())
 }
+
+struct GraphQL {
+    query: String,
+    search_query: String,
+    variables: String,
+    operation_name: String
+}
+
+impl GraphQL {
+    fn build_from(query: QueryType, ) -> GraphQL {
+
+    }
+}
+
+enum QueryType {
+    Issue { user: String, orgs: Vec<String> },
+    PullRequest { user: String, orgs: Vec<String> },
+    ReviewRequest { user: String, orgs: Vec<String> }
+}
+
+impl QueryType {
+
+    fn pull_request() -> String {
+        include_str!("search_pull_requests.graphql").to_string()
+    }
+
+    fn issues() -> String {
+        include_str!("search_issues.graphql").to_string()
+    }
+
+    fn user(&self) -> String {
+        match *self {
+            QueryType::Issue {user, orgs} => user,
+            QueryType::PullRequest {user, orgs} => user,
+            QueryType::ReviewRequest {user, orgs} => user
+        }
+    }
+
+    fn orgs(&self) -> Vec<String> {
+        match *self {
+            QueryType::Issue {user, orgs} => orgs,
+            QueryType::PullRequest {user, orgs} => orgs,
+            QueryType::ReviewRequest {user, orgs} => orgs
+        }
+    }
+
+
+    pub fn query(&self) -> String {
+        match *self {
+            Issue => QueryType::issues(),
+            PullRequest => QueryType::pull_request(),
+            ReviewRequest => QueryType::pull_request()
+        }
+    }
+
+    pub fn operation_name(&self) -> String {
+        match *self {
+            Issue => String::from("UserIssues"),
+            PullRequest => String::from("UserPullRequest"),
+            ReviewRequest => String::from("UserReviewRequest")
+        }
+    }
+
+    fn search_query(&self) -> String {
+        let base_query: String = String::from("is:open archived:false ");
+        let additional: String = match *self {
+            Issue => String::from("is:open archived:false assignee:"),
+            PullRequest => String::from("UserPullRequest"),
+            ReviewRequest => String::from("UserReviewRequest")
+        };
+        let users: String = self.orgs().join(" user:");
+        let query: String = vec![base_query, users].join("-");
+        println!("{}", query);
+        query
+    }
+}
