@@ -13,6 +13,7 @@ pub mod issue {
         title: String,
         labels: Vec<String>,
         comments: u32,
+        reactions: u32,
         state: Option<State>,
         updated_at: DateTime<chrono::FixedOffset>,
         repository: String,
@@ -50,6 +51,13 @@ pub mod issue {
                 Some(c) => c as u32,
                 None => 0u32
             };
+
+            let reactions: Option<u64> = node["reactions"]["totalCount"].as_u64();
+            let reactions: u32 = match reactions {
+                Some(r) => r as u32,
+                None => 0u32
+            };
+
             let updated_at: &str = match node["updatedAt"].as_str() {
                 Some(s) => s,
                 None => return None
@@ -61,6 +69,7 @@ pub mod issue {
                 labels: Vec::new(),
                 state: State::from_string(&node["state"].as_str()?.to_string()),
                 comments,
+                reactions,
                 updated_at: DateTime::parse_from_rfc3339(updated_at).expect("Unable to parse date"),
                 repository: node["repository"]["nameWithOwner"].as_str()?.to_string()
             };
