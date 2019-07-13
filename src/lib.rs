@@ -41,7 +41,7 @@ pub mod args {
 
     pub struct Arguments {
         pub user: String,
-        pub organizations: Vec<String>
+        pub orgs: Vec<String>
     }
 
     impl Arguments {
@@ -52,7 +52,7 @@ pub mod args {
                 1 => Err("No argument given for organization"),
                 _ => Ok(Arguments {
                     user: args.first().unwrap().clone(),
-                    organizations: env::args().skip(2).collect()
+                    orgs: env::args().skip(2).collect()
                 })
             }
         }
