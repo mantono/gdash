@@ -76,19 +76,30 @@ pub mod issue {
             Some(issue)
         }
 
-        fn score(&self) -> u64 {
+        fn time_since_updated(&self) -> i64 {
             let then: DateTime<FixedOffset> = self.updated_at.clone();
             let now: &DateTime<Utc> = &Utc::now();
-            let dur = now.signed_duration_since(then);
-            let days: u64 = (dur.num_seconds() as u64) / 86_400;
-            let comments: u64 = (self.comments * self.comments).min(1) as u64;
-            days * comments
+            now.signed_duration_since(then).num_seconds()
+        }
+
+        const ONE_DAY: i64 = 86_400;
+
+        fn score(&self) -> i64 {
+            let days: i64 = self.time_since_updated() / Issue::ONE_DAY;
+            let interactions: i64 = (self.reactions + self.comments).min(1) as i64;
+            let interactions: i64 = interactions * interactions;
+            (interactions - days) as i64
+        }
+
+        fn is_hot(&self) -> bool {
+            self.time_since_updated() <= Issue::ONE_DAY
         }
     }
 
     impl fmt::Display for Issue {
         fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-            fmt.write_fmt(format_args!("{} -> {}\t[{}]", &self.repository, &self.title, &self.url))
+            let hot = if self.is_hot() { "*" }  else { " " };
+            fmt.write_fmt(format_args!("{}{} -> {}\t[{}]", hot, &self.repository, &self.title, &self.url))
         }
     }
 
