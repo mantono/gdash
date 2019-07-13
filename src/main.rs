@@ -72,16 +72,14 @@ fn api_request(client: &reqwest::Client, query: QueryType, token: &String) -> Re
 #[derive(Debug)]
 struct GraphQL {
     query: String,
-    search_query: String,
-    operation_name: String
+    search_query: String
 }
 
 impl GraphQL {
     fn build_from(query: QueryType) -> GraphQL {
         GraphQL {
             query: query.query(),
-            search_query: query.search_query(),
-            operation_name: query.operation_name()
+            search_query: query.search_query()
         }
     }
 
@@ -134,14 +132,6 @@ impl QueryType {
             QueryType::Issue { user: _, orgs: _ } => QueryType::issues(),
             QueryType::PullRequest { user: _, orgs: _ } => QueryType::pull_request(),
             QueryType::ReviewRequest { user: _, orgs: _ } => QueryType::pull_request()
-        }
-    }
-
-    pub fn operation_name(&self) -> String {
-        match self {
-            QueryType::Issue { user: _, orgs: _ } => String::from("UserIssues"),
-            QueryType::PullRequest { user: _, orgs: _ } => String::from("UserPullRequest"),
-            QueryType::ReviewRequest { user: _, orgs: _ } => String::from("UserReviewRequest")
         }
     }
 
