@@ -1,4 +1,6 @@
 # gdash
+**This project is being superseded by [mantono/giss](https://github.com/mantono/giss)**, which has equivalent functionality.
+
 List assigned work for a GitHub user, such as
 - Issues
 - Pull requests
